@@ -1,78 +1,77 @@
-function [result_dict, range_dict, id_Y_GT_X, id_cutoff] = Get_R_Ts_range(X_grid, Y_grid, V_grid, ratio_cutoff, do_plot)
+function [result_dict, range_dict, id_T1_GT_T2, id_cutoff] = Get_R_Ts_range1(...
+            T2_grid, T1_grid, F_grid, ratio_cutoff, do_plot)
 %Args:
-%      X_grid: 2D matrix, shape [ny,nx]
-%      Y_grid: 2D matrix, shape [ny, nx] 
-%      V_grid:  2D matrix, shape [ny,nx],  V(i,j) = f(X_grid(i,j),Y_grid(i,j))
-%      ratio_cutoff:  float, ratio of the value V retained, make small value = 0
+%      T2_grid: 2D matrix, shape [n_T1,n_T2], T2 grid points
+%      T1_grid: 2D matrix, shape [n_T1, n_T2], T1 grid points
+%      F_grid:  2D matrix, shape [n_T1,n_T2],  Volume distribution, F is a function of T2 and T1
+%      ratio_cutoff:  float, ratio of  total F retained in the region of T1> T2, convert small value to be 0 
 %      do_plot: boolean, if True, then plot the graph
-
+%
 %Returns:
 %       result_dict: hashmap, 
-%               'sum_v': float, the summation of V_grid  
-%               'sum_v_Y_GT_X': float, the summation of V_grid with Y_grid > X_grid
-%               'ratio_Y_GT_X': float,  ratio of sum_v_Y_GT_X over sum_v
-%               'sum_v_cutoff': float,  the summation of V_Grid with (Y_grid > X_grid) and V_grid value > cutoff value 
+%               'sum_F': float, the summation of V_grid  
+%               'sum_F_T1_GT_T2': float, the summation of V_grid with Y_grid > X_grid
+%               'ratio_T1_GT_T2': float,  ratio of sum_v_Y_GT_X over sum_v
+%               'sum_F_cutoff': float,  the summation of V_Grid with (Y_grid > X_grid) and V_grid value > cutoff value 
 %               'ratio_cutoff_actual': float, ratio of sum_v_cutoff over sum_v
 %       range_dict: hashmap,  
 %               'R_max', the max value of R 
 %               'R_min', 
-%               'Ts_max', 
+%               'Ts_max'
 %               'Ts_min'
 %       
 %       
-        
+
         % determine best cutoff value
-        sum_v = sum(sum(V_grid));
+        sum_F = sum(sum(F_grid));
         
         % find the coor Y > coor X 
-        id_Y_GT_X = Y_grid > X_grid;
-        sum_v_Y_GT_X  = sum(sum(V_grid(id_Y_GT_X)));
-        ratio_Y_GT_X = sum_v_Y_GT_X / sum_v;
+        id_T1_GT_T2 = T1_grid > T2_grid;
+        sum_F_T1_GT_T2  = sum(sum(F_grid(id_T1_GT_T2)));
+        ratio_T1_GT_T2 = sum_F_T1_GT_T2 / sum_F;
        
         
-        % search cut_values so that ratio_cutoff close to ratio_sum_v
-        cut_values = logspace(-5,0,100)*sum_v_Y_GT_X ;
-        delta_min = 999;
-        v_cutoff_best = 999;
+        % search cut_values so that ratio_cutoff close to ratio_sum_F
+        cut_values = logspace(-5,0,100)*sum_F_T1_GT_T2 ;
+        delta_min_ = 999;
+        F_cutoff_best = 999;
         
         for cut_value = cut_values
-                V_grid_cutoff = V_grid;
-                id_cutoff = (V_grid >= cut_value)  &  id_Y_GT_X; % larger than cut_value as well as in the Y>X section
-                V_grid_cutoff(~id_cutoff) = 0;
-                sum_v_cutoff = sum(sum(V_grid_cutoff));
-                ratio_i = sum_v_cutoff / sum_v_Y_GT_X;
-                if abs(ratio_i - ratio_cutoff) < delta_min
-                        delta_min = abs(ratio_i - ratio_cutoff);
-                        v_cutoff_best = cut_value ;
+                F_grid_cutoff = F_grid;
+                id_cutoff = (F_grid >= cut_value)  &  id_T1_GT_T2; % larger than cut_value as well as in the Y>X section
+                F_grid_cutoff(~id_cutoff) = 0;
+                sum_F_cutoff = sum(sum(F_grid_cutoff));
+                ratio_i = sum_F_cutoff / sum_F_T1_GT_T2;
+                if abs(ratio_i - ratio_cutoff) < delta_min_
+                        delta_min_ = abs(ratio_i - ratio_cutoff);
+                        F_cutoff_best = cut_value ;
                 end
         end
         
         % use the best cutoff value to get the cutoff
-        V_grid_cutoff = V_grid;
-        id_cutoff = (V_grid >= v_cutoff_best)  &  id_Y_GT_X;
-        V_grid_cutoff(~id_cutoff) = 0;
-        sum_v_cutoff = sum(sum(V_grid_cutoff));
-        ratio_cutoff_actual= sum_v_cutoff / sum_v_Y_GT_X;
+        F_grid_cutoff = F_grid;
+        id_cutoff = (F_grid >= F_cutoff_best)  &   id_T1_GT_T2; % id of cutoff 
+        F_grid_cutoff(~id_cutoff) = 0;
+        sum_F_cutoff = sum(sum(F_grid_cutoff));
+        ratio_cutoff_actual= sum_F_cutoff / sum_F_T1_GT_T2;
         
-        % get range 
-        T2_grid = X_grid; 
-        T1_grid = Y_grid; 
-        [R_grid, Ts_grid] = T2T1_conv_RTs(T2_grid, T1_grid); 
+        fprintf('total volume = %f\n', sum_F)
+        fprintf('volume (T1> T2) /  total volume = %f \n', ratio_T1_GT_T2)
+        fprintf('volume (cutoff) / volume (T1> T2) = %f\n', ratio_cutoff_actual)
+        
+        keys = {'sum_F', 'sum_F_T1_GT_T2', 'ratio_T1_GT_T2', 'sum_F_cutoff', 'ratio_cutoff_actual'};
+        values = [sum_F, sum_F_T1_GT_T2, ratio_T1_GT_T2, sum_F_cutoff, ratio_cutoff_actual];
+        result_dict = containers.Map(keys,values); 
+        
+        % get range  
+        [R_grid, Ts_grid] = T2T1_conv_RTs(T2_grid, T1_grid);  %  conver T2, T1 to R and Ts
         R_max = max(max(R_grid(id_cutoff)));
         R_min = min(min(R_grid(id_cutoff)));
         Ts_max = max(max(Ts_grid(id_cutoff)));
         Ts_min =  min(min(Ts_grid(id_cutoff)));
-        
-        % results
-        fprintf('total volume = %f\n', sum_v)
-        fprintf('volume (Y> X) /  total volume = %f \n', ratio_Y_GT_X)
-        fprintf('volume (cutoff) / volume (Y> X) = %f\n', ratio_cutoff_actual)
+       
         fprintf('R range [%f to %f], Ts range [%f to %f] \n', R_min, R_max, Ts_min, Ts_max)
         fprintf('\n')
-        keys = {'sum_v', 'sum_v_Y_GT_X', 'ratio_Y_GT_X', 'sum_v_cutoff', 'ratio_cutoff_actual'};
-        values = [sum_v, sum_v_Y_GT_X, ratio_Y_GT_X, sum_v_cutoff, ratio_cutoff_actual];
-        result_dict = containers.Map(keys,values); 
-        
         keys ={'R_max', 'R_min', 'Ts_max', 'Ts_min'};
         values = [R_max, R_min, Ts_max, Ts_min];
         range_dict = containers.Map(keys, values);
@@ -80,27 +79,27 @@ function [result_dict, range_dict, id_Y_GT_X, id_cutoff] = Get_R_Ts_range(X_grid
         % plotting 
         if do_plot
                 % plot the coor Y > coor X 
-                V_grid_plot = V_grid; 
-                V_grid_plot(~id_Y_GT_X) = NaN;
+                F_grid_plot = F_grid; 
+                F_grid_plot(~id_T1_GT_T2) = NaN;
                 figure()
                 hold on
-                pcolor(X_grid, Y_grid, V_grid_plot)
+                pcolor(T2_grid, T1_grid, F_grid_plot)
                 plot([1e-5, 1e1],[1e-5, 1e1],'k-','LineWidth',2)
                 shading interp 
                 xlabel('X-grid')
                 ylabel('Y-grid')
-                title('coor Y > coor X')
+                title('Region T1 > T2')
                 set(gca,'FontSize',10) %Ticks and legend
                 set(gca,'yscale','log')
                 set(gca,'xscale','log')
                 
                 % plot the 
-                V_cutoff_plot = V_grid;
-                V_cutoff_plot(~id_cutoff) = NaN;
+                F_cutoff_plot = F_grid;
+                F_cutoff_plot(~id_cutoff) = NaN;
                 figure()
                 hold on
-                pcolor(X_grid, Y_grid, V_cutoff_plot)
-                plot([1e-5, 1e1],[1e-5, 1e1],'k-','LineWidth',2)
+                pcolor(T2_grid, T1_grid, F_cutoff_plot)
+                plot([1e-5, 1e1], [1e-5, 1e1], 'k-', 'LineWidth', 2)
                 shading interp 
                 xlabel('X-grid')
                 ylabel('Y-grid')

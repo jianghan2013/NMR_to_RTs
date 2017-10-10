@@ -166,8 +166,8 @@ classdef Class_Conv_RTs < handle
                         subplot(1,2,2)
                         labels ={'1','2','3','4','5','6','7'}; 
                         vol_7zones = obj.G_vol_7zones;
-                        vol_total = sum(vol_7zones);
-                        pie (vol_7zones/ vol_total, labels);
+                        v
+                        pie (obj.G_vol_7zones, labels);
                         ax = gca;
                 end
                 
