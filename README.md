@@ -1,8 +1,8 @@
 # NMR_to_RTs
-Read T1,T2 and volume distribution F , convert to volume distribution G expressed by (R, Ts) 
+Nuclear magnetic resonance(NMR) measurements can quantify different type of fluid volume distribution in shale in term of $T_1$ and $T_2$. However, it is hard to seperate fluids as decision boundaries of different fluids are nonlinear. Daigle (2014) define two new parameters $R$ and $Ts$. By expressing T_2$,$T_1$ in term of the new parameters, volume distribution F($T_2$,$T_1$) can be mapped to volume distribution G($R$,$Ts$). In the new distribution, decision boundaries become linear. 
+     
 
-
-# How does this works?
+## How does this works?
 
 The T1T2 distribution is display below. 
  
