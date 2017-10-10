@@ -10,9 +10,9 @@ The T1T2 distribution is display below.
 
 Convert this distribution to R,Ts distribution.
 
-![2](fig/RTs_contour.png)
+![2](figs/RTs_contour.png)
 
 Calculate the volume in 7 zones. 
 
-![3](fig/RTs_pie_bar.png)
+![3](figs/RTS_pie_bar.png)
 
