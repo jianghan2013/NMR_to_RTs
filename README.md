@@ -32,6 +32,6 @@ Calculate the volume in 7 zones.
 
 ### References:
 * Jiang et al., 2018, Characterization of thermal evolution of pores and fluids in shales using NMR 2D measurement
-(https://library.seg.org/doi/abs/10.15530/urtec-2018-2901623:https://library.seg.org/doi/abs/10.15530/urtec-2018-2901623)
+(https://library.seg.org/doi/abs/10.15530/urtec-2018-2901623)
 * Daigle et al., 2014,http://library.seg.org/doi/pdf/10.15530/urtec-2014-1905272
 
